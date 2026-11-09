@@ -631,7 +631,7 @@ footer{padding:18px 18px 24px;font-size:11px;color:var(--ink3);text-align:center
 (function(){
   let currentStep = 1;
   const totalSteps = 21; // 1 Meta + 8 Story + 12 Pola Pikir
-  const APPS_SCRIPT_URL = 'GANTI_DENGAN_URL_WEB_APP_ANDA'; // <-- GANTI DI SINI
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjlKBvxgBGQyzMv2txLcFxe-GwJJuZHH3ZzI2idoz4qSxDtoxMdGHbHQf8nS0q9apN/exec';
 
   const stepPanes = document.querySelectorAll('.step-pane');
   const btnNext = document.getElementById('btn-next');
@@ -863,7 +863,7 @@ footer{padding:18px 18px 24px;font-size:11px;color:var(--ink3);text-align:center
       responses: uniqResp,
       callout: callout,
       comm_guide: commGuide,
-      ...rawAnswers   // <-- Patch: kirim jawaban mentah per pertanyaan
+      ...rawAnswers
     };
   }
 
@@ -893,12 +893,6 @@ footer{padding:18px 18px 24px;font-size:11px;color:var(--ink3);text-align:center
 
     if(!results) {
       statusEl.textContent = 'Data tidak ditemukan. Silakan muat ulang halaman.';
-      statusEl.style.color = '#B3261E';
-      return;
-    }
-
-    if(APPS_SCRIPT_URL.indexOf('GANTI_DENGAN') !== -1) {
-      statusEl.textContent = '⚠️ URL Apps Script belum dikonfigurasi. Hubungi admin.';
       statusEl.style.color = '#B3261E';
       return;
     }
