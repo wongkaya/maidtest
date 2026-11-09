@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -427,12 +426,12 @@ footer{padding:22px 18px 26px;font-size:11.5px;color:var(--ink3)}
   
   <label class="ag" for="ok">
     <input type="checkbox" id="ok" name="ok">
-    <span>Calon ART/suster <b>sudah tahu dan bersedia dihubungi</b> tim kami lewat WhatsApp. Saya menyetujui nama dan nomornya dikirim ke tim lewat chat.</span>
+    <span>Calon ART/suster <b>sudah tahu dan bersedia dihubungi</b> tim kami lewat WhatsApp. Saya menyetujui data ini dicatat tim untuk ditindaklanjuti.</span>
   </label>
   
   <div class="err" id="err" role="alert"></div>
   <button type="submit" class="btn">Ajukan Profiling via WhatsApp</button>
-  <p class="fnote">Data tidak disimpan di website ini. Data hanya terkirim lewat chat WhatsApp yang Anda kirim sendiri.</p>
+  <p class="fnote">Data dicatat ke sistem internal untuk ditindaklanjuti dan dikirim ke WhatsApp untuk konfirmasi.</p>
  </form>
  <p class="alt">Ada pertanyaan dulu? <a href="https://wa.me/6281553016909?text=Halo%2C%20saya%20ingin%20bertanya%20soal%20Profiling%20Character%20Calon%20ART." target="_blank" rel="noopener">Chat langsung Klik disini</a></p>
 </section>
@@ -453,17 +452,34 @@ footer{padding:22px 18px 26px;font-size:11.5px;color:var(--ink3)}
 
 <script>
 (function(){
-  // Form submission logic to WhatsApp
+  // URL Web App Apps Script
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjlKBvxgBGQyzMv2txLcFxe-GwJJuZHH3ZzI2idoz4qSxDtoxMdGHbHQf8nS0q9apN/exec';
+
   var f = document.getElementById('f'), er = document.getElementById('err');
+
   function wa(v){
     var d = String(v).replace(/\D/g,'');
     if(d.indexOf('0')===0) d = '62'+d.slice(1);
     else if(d.indexOf('8')===0) d = '62'+d;
     return d;
   }
-  
+
+  // Kirim payload ke Apps Script (fire-and-forget)
+  function sendToSheet(payload){
+    try {
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body: JSON.stringify(payload),
+        keepalive: true
+      }).catch(function(){ /* abaikan */ });
+    } catch(_) { /* abaikan */ }
+  }
+
   f.addEventListener('submit', function(e){
     e.preventDefault();
+
     var g = function(k){ return f.elements[k].value.trim(); };
     var cw = wa(g('cw'));
     var m = '';
@@ -476,11 +492,45 @@ footer{padding:22px 18px 26px;font-size:11.5px;color:var(--ink3)}
     er.classList.toggle('on', !!m);
     if(m) return;
 
-    var t = 'Halo, saya ingin mengajukan Profiling Character Calon ART (Investasi Rp 149.000).\n\nPemberi kerja: '+g('n')+'\nCalon: '+g('cn')+'\nWhatsApp calon: +'+cw+'\nPosisi: '+g('r')+'\nPerlu memutuskan: '+g('d')+(g('c')?'\nCatatan: '+g('c'):'')+'\n\nCalon ART/suster sudah tahu dan bersedia dihubungi.';
-    location.href = 'https://wa.me/6281553016909?text=' + encodeURIComponent(t);
+    // Payload mengikuti skema Apps Script (lead, bukan assessment penuh)
+    var payload = {
+      worker_name: g('cn'),
+      worker_birthdate: '-',
+      worker_age: '-',
+      employer_name: g('n'),
+      position: g('r'),
+      last_job_type: '-',
+      last_job_duration: '-',
+      resign_reason: g('c') || '-',
+      archetype: 'LEAD — Menunggu Assessment',
+      subtitle: 'Lead dari halaman landing Profiling Character',
+      healthy_score: 0,
+      healthy_count: 0,
+      mm_breakdown: { healthy: 0, generalization: 0, deletion: 0, distortion: 0 },
+      emotions: [],
+      responses: [],
+      callout:
+        'Detail Lead:\n' +
+        '- Pemberi kerja: ' + g('n') + '\n' +
+        '- Calon ART/suster: ' + g('cn') + '\n' +
+        '- WhatsApp calon: +' + cw + '\n' +
+        '- Posisi: ' + g('r') + '\n' +
+        '- Perlu memutuskan: ' + g('d') + '\n' +
+        '- Catatan: ' + (g('c') || '-'),
+      comm_guide: '-'
+    };
+
+    // 1) Kirim ke Apps Script (sheet + email admin)
+    sendToSheet(payload);
+
+    // 2) Setelah jeda singkat, redirect ke WhatsApp
+    var t = 'Halo, saya ingin mengajukan Profiling Character Calon ART (Investasi Rp 149.000).\n\nPemberi kerja: ' + g('n') + '\nCalon: ' + g('cn') + '\nWhatsApp calon: +' + cw + '\nPosisi: ' + g('r') + '\nPerlu memutuskan: ' + g('d') + (g('c') ? '\nCatatan: ' + g('c') : '') + '\n\nCalon ART/suster sudah tahu dan bersedia dihubungi.';
+
+    setTimeout(function(){
+      window.location.href = 'https://wa.me/6281553016909?text=' + encodeURIComponent(t);
+    }, 350);
   });
 })();
 </script>
 </body>
 </html>
-```
